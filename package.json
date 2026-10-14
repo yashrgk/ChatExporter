@@ -1,0 +1,21 @@
+{
+  "name": "saafpdf",
+  "version": "1.0.0",
+  "description": "SaafPDF - AI chat responses to clean, perfectly formatted PDFs with responsive tables and auto-scaling math formulas",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node tests/verify-all.js"
+  },
+  "dependencies": {
+    "@capacitor/android": "^8.5.3",
+    "@capacitor/cli": "^8.5.3",
+    "@capacitor/core": "^8.5.3",
+    "cheerio": "^1.0.0-rc.12",
+    "cors": "^2.8.5",
+    "dompurify": "^3.4.17",
+    "express": "^4.21.2",
+    "html2pdf.js": "^0.14.0",
+    "katex": "^0.19.0"
+  }
+}

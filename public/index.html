@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="hi" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SaafPDF - Table poori. Formula saaf.</title>
+  <meta name="description" content="AI chatbot ke jawab ko paste karke saaf, padhne layak aur share karne layak PDF banayein. Tables aur lambe math formulas bina kate fit honge.">
+
+  <!-- Favicon SVG -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>✨</text></svg>">
+
+  <!-- Google Fonts: Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <!-- KaTeX CSS (Local with CDN fallback) -->
+  <link rel="stylesheet" href="vendor/katex/katex.min.css" onerror="this.onerror=null;this.href='https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css';">
+
+  <!-- Main Animated Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Ambient Glow Effect -->
+  <div class="ambient-glow" aria-hidden="true"></div>
+
+  <!-- App Main Container -->
+  <div class="app-container">
+
+    <!-- Top Site Header -->
+    <header class="site-header">
+      <div class="brand-section">
+        <div class="brand-logo" aria-hidden="true">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+            <line x1="16" y1="13" x2="8" y2="13"></line>
+            <line x1="16" y1="17" x2="8" y2="17"></line>
+            <polyline points="10 9 9 9 8 9"></polyline>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <h1>SaafPDF <span class="badge-version">v1.0</span></h1>
+          <p>AI-to-PDF Engine with Auto-Scaling Math & Tables</p>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <!-- Sample Data Button -->
+        <button id="btn-sample" class="btn-icon" title="Ek click mein demo response load karein">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"></path>
+          </svg>
+          <span>Demo Data</span>
+        </button>
+
+        <!-- Import Shared Chat Link Button -->
+        <button id="btn-open-import" class="btn-icon" title="ChatGPT ya Gemini share link se import karein">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+          </svg>
+          <span>Puri Chat Import Karein</span>
+        </button>
+
+        <!-- Clear Button -->
+        <button id="btn-clear" class="btn-icon" title="Text saaf karein">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="3 6 5 6 21 6"></polyline>
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+          </svg>
+          <span>Clear</span>
+        </button>
+
+        <!-- Dark/Light Theme Toggle -->
+        <button id="theme-toggle" class="btn-icon" aria-label="Toggle Dark/Light Mode" title="Theme badlein">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Hero Tagline & Privacy Bar -->
+    <div class="hero-tagline-bar">
+      <div class="tagline-content">
+        <span class="tagline-highlight">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" color="#4f46e5">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+          Table poori. Formula saaf.
+        </span>
+        <span class="tagline-sub">AI chat ka jawab paste karein. Tables page mein fit honge aur lambe formulas poore aur alag-alag lines mein dikhenge.</span>
+      </div>
+      <div class="privacy-pill">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+        </svg>
+        Aapka text isi device par rehta hai.
+      </div>
+    </div>
+
+    <!-- Mobile Segmented Control Navigation -->
+    <div class="mobile-tabs" role="tablist">
+      <button class="tab-btn active" data-target="editor" role="tab" title="Editor">
+        ✏️ Editor
+      </button>
+      <button class="tab-btn" data-target="preview" role="tab" title="Preview A4">
+        📄 Preview
+      </button>
+      <button class="tab-btn" data-target="import" role="tab" title="Import Link">
+        🔗 Import
+      </button>
+    </div>
+
+    <!-- Main 2-Column Split Workspace -->
+    <main class="main-workspace">
+
+      <!-- Left Panel: Textarea Editor -->
+      <section id="editor-panel" class="editor-panel" aria-label="Input Editor">
+        <div class="editor-header">
+          <!-- Document Title Edit Box -->
+          <div class="title-input-wrapper">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 20h9"></path>
+              <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+            </svg>
+            <input 
+              type="text" 
+              id="doc-title-input" 
+              class="title-input" 
+              placeholder="PDF Title (Optional) e.g., Calculus Notes ya Model Analysis" 
+              value=""
+              autocomplete="off"
+            />
+          </div>
+
+          <!-- Quick Editor Toolbar & Hints -->
+          <div class="editor-toolbar">
+            <div class="toolbar-left">
+              <span class="tool-btn btn-sparkle" title="Supported Input">
+                ✨ Markdown table, TSV aur LaTeX support
+              </span>
+            </div>
+            <div class="toolbar-right">
+              <span class="tool-btn" title="LaTeX delimiters">
+                Math: $...$ &amp; $$...$$
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Auto-Detect Link Action Banner -->
+        <div id="link-detect-banner" class="link-detect-banner" style="display: none;">
+          <div class="detect-banner-content">
+            <span class="spinner" style="width: 14px; height: 14px;"></span>
+            <span><strong>Share Link Detected:</strong> Puri conversation automatically import ki ja rahi hai...</span>
+          </div>
+        </div>
+
+        <!-- Large Paste Box -->
+        <div class="textarea-container">
+          <textarea 
+            id="chat-input" 
+            class="chat-input" 
+            placeholder="Apna chat response paste karein...&#10;&#10;ChatGPT, Gemini ya Claude se copy kiya gaya koi bhi jawab yahan paste karein.&#10;&#10;• Tables (Markdown | ya TSV) automatically semantic table banenge&#10;• Math formulas ($...$ aur $$...$$) alag line par bina truncate hue scale honge&#10;• Step headings (jaise ##### Step 3a) bina kisi LaTeX error ke render honge"
+            spellcheck="false"
+          ></textarea>
+        </div>
+
+        <!-- Footer Stats Bar -->
+        <div class="editor-footer">
+          <div class="stats-pill">
+            <span id="word-count">0 Shabd (Words)</span>
+            <span>•</span>
+            <span id="char-count">0 Akshar (Chars)</span>
+          </div>
+          <div>
+            <span>Live Local Preview</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Right Panel: Document Preview & PDF Export -->
+      <section id="preview-panel" class="preview-panel" aria-label="Document Preview">
+        
+        <!-- Top Toolbar with Zoom & Action Buttons -->
+        <div class="preview-top-bar">
+          <div class="preview-meta">
+            <span class="preview-badge">A4 Preview</span>
+            <!-- Zoom Controls -->
+            <div class="zoom-controls">
+              <button id="zoom-out" class="zoom-btn" title="Zoom Out">−</button>
+              <span id="zoom-label" class="zoom-label">100%</span>
+              <button id="zoom-in" class="zoom-btn" title="Zoom In">+</button>
+              <button id="zoom-reset" class="zoom-btn" title="Reset Zoom">Fit</button>
+            </div>
+          </div>
+
+          <!-- Main Actions: Print to PDF & Download PDF -->
+          <div class="action-buttons">
+            <button id="btn-copy-preview" class="btn-secondary" title="Formatted preview text copy karein">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              <span>Copy</span>
+            </button>
+
+            <button id="btn-download-pdf" class="btn-secondary" title="Direct PDF file download karein">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
+              <span>Download PDF</span>
+            </button>
+
+            <!-- Primary Action Button -->
+            <button id="btn-print" class="btn-primary" title="PDF banayein / Browser Print dialog">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M6 9V2h12v7"></path>
+                <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+                <rect x="6" y="14" width="12" height="8"></rect>
+              </svg>
+              <span>PDF banayein</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Math Warning Banner (Shown only if LaTeX syntax error exists in formulas) -->
+        <div id="math-warning-banner" class="toast-warning" style="display: none; padding: 10px 16px; border-radius: 8px; font-size: 0.82rem; background: var(--warning-bg); border: 1px solid var(--warning); color: #92400e;">
+        </div>
+
+        <!-- Scrollable Sheet Container -->
+        <div class="preview-scroll-container">
+          
+          <!-- Realistic A4 Paper Simulation -->
+          <article id="a4-sheet" class="a4-document-sheet">
+            <div class="sheet-watermark-indicator">A4 PRINTABLE</div>
+
+            <!-- Document Title & Header in PDF -->
+            <header class="doc-header-banner">
+              <h1 id="preview-title" class="doc-title">AI Chat Document</h1>
+              <div class="doc-meta-row">
+                <span id="preview-date">Oct 14, 2026</span>
+                <span>•</span>
+                <span>SaafPDF Formatted Document</span>
+              </div>
+            </header>
+
+            <!-- Rendered Document Content -->
+            <div id="preview-document"></div>
+
+            <!-- Empty State -->
+            <div id="empty-state" class="preview-empty-state">
+              <svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+                <line x1="16" y1="13" x2="8" y2="13"></line>
+                <line x1="16" y1="17" x2="8" y2="17"></line>
+                <polyline points="10 9 9 9 8 9"></polyline>
+              </svg>
+              <h2 class="empty-title">Koi content nahi hai</h2>
+              <p class="empty-subtitle">
+                Bayi taraf chat ka jawab paste karein ya upar <strong>"Demo Data"</strong> dabakar sample preview check karein.
+              </p>
+            </div>
+          </article>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Mobile Sticky Bottom Action Bar -->
+    <div id="mobile-bottom-bar" class="mobile-bottom-bar">
+      <!-- Shown when Editor tab is active -->
+      <div id="mobile-editor-bar" class="mobile-bar-actions">
+        <button id="btn-mobile-demo" class="btn-secondary mobile-btn" title="Demo response load karein">
+          ✨ Demo Data
+        </button>
+        <button id="btn-mobile-to-preview" class="btn-primary mobile-btn" title="Formatted preview dekhein">
+          📄 Preview (A4) ➔
+        </button>
+      </div>
+
+      <!-- Shown when Preview tab is active -->
+      <div id="mobile-preview-bar" class="mobile-bar-actions" style="display: none;">
+        <button id="btn-mobile-download" class="btn-secondary mobile-btn" title="Direct PDF file download karein">
+          ⬇️ Download
+        </button>
+        <button id="btn-mobile-print" class="btn-primary mobile-btn" title="PDF banayein / Print">
+          📄 PDF Banayein
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Import Share Link (ChatGPT / Gemini) -->
+  <div id="import-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="modal-title" class="modal-title">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" color="#4f46e5">
+            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+          </svg>
+          Puri Chat Import Karein
+        </h3>
+        <button id="btn-close-modal" class="close-btn" aria-label="Close dialog">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <div class="modal-hint-box">
+          <strong>Kripya dhyan dein:</strong> Pehle ChatGPT ya Gemini par conversation share karke <em>"Anyone with the link"</em> access create karein. Supported URL formats:
+          <br>• <code>https://chatgpt.com/share/...</code>
+          <br>• <code>https://chat.openai.com/share/...</code>
+          <br>• <code>https://gemini.google.com/share/...</code>
+          <br><br>
+          <small>Yeh request sirf aapke local first-party backend se fetch hoti hai. Koi bhi passwords, cookies ya third-party proxies use nahi hote.</small>
+        </div>
+
+        <div class="link-input-group">
+          <label for="share-url-input" class="link-label">Public Shared Link Paste Karein:</label>
+          <input 
+            type="url" 
+            id="share-url-input" 
+            class="link-input" 
+            placeholder="https://chatgpt.com/share/6789abc-..."
+            autocomplete="off"
+          />
+        </div>
+
+        <!-- Import Status Message -->
+        <div id="import-status" class="import-status-box"></div>
+      </div>
+
+      <div class="modal-footer">
+        <button id="btn-cancel-import" class="btn-secondary">Cancel</button>
+        <button id="btn-submit-import" class="btn-primary">
+          <span>Puri chat import karein</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="toast-container" aria-live="polite"></div>
+
+  <!-- Vendor Scripts (Local with fallback) -->
+  <script src="vendor/dompurify/purify.min.js" onerror="this.onerror=null;this.src='https://cdn.jsdelivr.net/npm/dompurify@3.0.9/dist/purify.min.js';"></script>
+  <script src="vendor/katex/katex.min.js" onerror="this.onerror=null;this.src='https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js';"></script>
+  <script src="vendor/html2pdf/html2pdf.bundle.min.js" onerror="this.onerror=null;this.src='https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';"></script>
+
+  <!-- SaafPDF Modules -->
+  <script src="parser.js"></script>
+  <script src="scaler.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
