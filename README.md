@@ -22,9 +22,10 @@
    - `##### Step 3(a): Differentiate $p(x) = e^{3x}$` jaise headings ko proper `<h5>` heading ke roop mein parse karta hai.
    - Heading ke `#` character ko LaTeX mein nahi bheja jata, jisse `"macro parameter character #"` jaisi error kabhi nahi aati.
 
-4. **Puri Chat Import (ChatGPT & Gemini Share Links)**:
-   - Public shared links (`https://chatgpt.com/share/...` ya `https://gemini.google.com/share/...`) se seedha conversation import karein.
-   - **SSRF Protected First-Party Backend**: Keval approved hostnames aur `/share/` paths fetch karta hai. Koi cookies, passwords ya credentials forward nahi hote.
+4. **Puri Chat Import (ChatGPT, Gemini & Claude Share Links)**:
+   - Public shared links (`https://chatgpt.com/share/...`, `https://gemini.google.com/share/...` / `https://g.co/gemini/share/...`, ya `https://claude.ai/share/...`) se seedha conversation import karein.
+   - **Direct Raw Chat Formatter**: Agar link private ho ya Cloudflare challenge aaye, to copied text (`Human:`/`Assistant:`, `User:`/`Gemini:`, `You said:`/`ChatGPT said:`) ko 1-click mein clean PDF Markdown mein convert karein.
+   - **SSRF Protected First-Party Backend**: Keval approved hostnames aur `/share/` paths fetch karta hai. Header overflow safe (256KB buffer) aur local-only.
 
 5. **2 Export Options**:
    - **PDF Banayein (Print Dialog)**: Browser ke native print engine se crisp vector quality aur native A4 margins ke saath PDF save karein.

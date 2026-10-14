@@ -30,7 +30,9 @@ const ALLOWED_HOSTS = new Set([
   'chatgpt.com',
   'chat.openai.com',
   'gemini.google.com',
-  'g.co'
+  'share.gemini.google',
+  'g.co',
+  'claude.ai'
 ]);
 
 /**
@@ -54,7 +56,7 @@ function validateShareUrl(rawUrl) {
     if (!ALLOWED_HOSTS.has(hostname)) {
       return {
         valid: false,
-        error: `Asamarthit provider: "${hostname}". Keval ChatGPT (chatgpt.com) ya Gemini (gemini.google.com) ke public share links supported hain.`
+        error: `Asamarthit provider: "${hostname}". Keval ChatGPT (chatgpt.com), Gemini (gemini.google.com, share.gemini.google), ya Claude (claude.ai) ke public share links supported hain.`
       };
     }
 
@@ -68,6 +70,24 @@ function validateShareUrl(rawUrl) {
     if (hostname === 'g.co') {
       if (!pathname.startsWith('/gemini/share/')) {
         return { valid: false, error: 'Invalid g.co link format. Format: https://g.co/gemini/share/...' };
+      }
+    } else if (hostname === 'share.gemini.google') {
+      if (!pathname || pathname.length <= 1) {
+        return { valid: false, error: 'Invalid Gemini share link format. Format aesa hona chahiye: https://share.gemini.google/...' };
+      }
+    } else if (hostname === 'claude.ai') {
+      if (!pathname.startsWith('/share/') && !pathname.startsWith('/chat/')) {
+        return {
+          valid: false,
+          error: 'Invalid Claude share URL format. Format aesa hona chahiye: https://claude.ai/share/...'
+        };
+      }
+    } else if (hostname === 'gemini.google.com') {
+      if (!pathname.startsWith('/share/') && !pathname.startsWith('/app/') && !pathname.startsWith('/social_preview/')) {
+        return {
+          valid: false,
+          error: 'Invalid Gemini share URL format. Format aesa hona chahiye: https://gemini.google.com/share/...'
+        };
       }
     } else {
       if (!pathname.startsWith('/share/') || pathname.length <= 7) {
@@ -87,7 +107,7 @@ function validateShareUrl(rawUrl) {
 /**
  * Safe fetch with SSRF protection, size limits, and timeout
  */
-function safeFetchHtml(targetUrl, maxRedirects = 3) {
+function safeFetchHtml(targetUrl, maxRedirects = 5) {
   return new Promise((resolve, reject) => {
     if (maxRedirects < 0) {
       return reject(new Error('Bahut zyada redirects mile. Request radd kar di gayi.'));
@@ -99,16 +119,30 @@ function safeFetchHtml(targetUrl, maxRedirects = 3) {
     }
 
     const parsed = validation.parsedUrl;
+    const isGemini = parsed.hostname.includes('gemini.google.com') || parsed.hostname.includes('share.gemini.google');
+    const userAgent = isGemini
+      ? 'Twitterbot/1.0 (compatible; Google Gemini Share Parser)'
+      : 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36';
+
     const reqOptions = {
       hostname: parsed.hostname,
       port: 443,
       path: parsed.pathname + parsed.search,
       method: 'GET',
+      maxHeaderSize: 262144, // Essential for Google Gemini large response headers
       headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'User-Agent': userAgent,
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
         'Accept-Language': 'en-US,en;q=0.9,hi;q=0.8',
-        'Sec-Fetch-Mode': 'navigate'
+        'Cache-Control': 'no-cache',
+        'Sec-Ch-Ua': '"Chromium";v="124", "Google Chrome";v="124"',
+        'Sec-Ch-Ua-Mobile': '?0',
+        'Sec-Ch-Ua-Platform': '"Windows"',
+        'Sec-Fetch-Dest': 'document',
+        'Sec-Fetch-Mode': 'navigate',
+        'Sec-Fetch-Site': 'none',
+        'Sec-Fetch-User': '?1',
+        'Upgrade-Insecure-Requests': '1'
       },
       timeout: 10000 // 10s timeout
     };
@@ -133,7 +167,10 @@ function safeFetchHtml(targetUrl, maxRedirects = 3) {
       }
 
       if (res.statusCode === 401 || res.statusCode === 403) {
-        return reject(new Error('Yeh chat private hai ya login zaroori hai. ChatGPT/Gemini mein "Anyone with the link" sharing enable karein.'));
+        if (parsed.hostname.includes('claude.ai')) {
+          return reject(new Error('Claude ne Cloudflare challenge enforce kiya hai. Kripya chat ko copy karke SaafPDF ke editor/modal mein paste karein — SaafPDF formatting aur formulas ko saaf PDF mein badal dega!'));
+        }
+        return reject(new Error('Yeh chat private hai ya login zaroori hai. ChatGPT, Gemini ya Claude mein "Anyone with the link" sharing enable karein ya direct text paste karein.'));
       }
 
       if (res.statusCode !== 200) {
@@ -374,86 +411,278 @@ function parseChatGptShare(html) {
 function parseGeminiShare(html) {
   const $ = cheerio.load(html);
   let messages = [];
-  let title = $('title').text().replace(/^Gemini\s*-\s*/i, '').replace(/\s*-\s*Gemini$/i, '').trim() || 'Gemini Shared Conversation';
 
-  // Strategy 1: AF_initDataCallback scripts (Standard Google Apps initial data)
-  $('script').each((i, element) => {
-    const text = $(element).html() || '';
-    if (text.includes('AF_initDataCallback') && text.includes('data:')) {
-      try {
-        const dataMatch = text.match(/data:\s*(\[[\s\S]*?\])\s*,\s*sideChannel:/);
-        if (dataMatch) {
-          const rawData = JSON.parse(dataMatch[1]);
-          
-          // Deep search in nested arrays for pairs of queries and responses
-          function extractGeminiStrings(node, result = []) {
-            if (typeof node === 'string' && node.length > 10) {
-              result.push(node);
-            } else if (Array.isArray(node)) {
-              for (const child of node) {
-                extractGeminiStrings(child, result);
+  // Extract Title: Check og:title, twitter:title, or <title>
+  let title = $('meta[property="og:title"]').attr('content') ||
+              $('meta[name="twitter:title"]').attr('content') ||
+              $('title').text() ||
+              '';
+
+  title = title
+    .replace(/^Gemini\s*[-|–—]\s*/i, '')
+    .replace(/\s*[-|–—]\s*Gemini$/i, '')
+    .replace(/direct access to Google AI/i, '')
+    .trim();
+
+  // Strategy 1: Dedicated Google Gemini Custom Web Components & Turn Viewers
+  const turnElements = $('share-turn-viewer, .conversation-turn, .turn-container, div[data-response-index]');
+  if (turnElements.length > 0) {
+    turnElements.each((i, turn) => {
+      const $turn = $(turn);
+      $turn.find('button, svg, script, style, nav, .tts-button, .feedback-container').remove();
+
+      const userText = $turn.find('user-query, .user-query-container, .user-query, [data-test-id="user-query"]').text().trim();
+      const modelText = $turn.find('model-response, .model-response-text, .response-container, [data-test-id="model-response"], .message-content').text().trim();
+
+      if (userText) {
+        messages.push({ role: 'User', content: userText });
+      }
+      if (modelText) {
+        messages.push({ role: 'Assistant', content: modelText });
+      }
+    });
+  }
+
+  // Strategy 2: Distinct user-query and model-response elements
+  if (messages.length === 0) {
+    const userQueries = [];
+    const modelResponses = [];
+
+    $('user-query, .user-query-container, .user-query, [data-test-id="user-query"]').each((i, el) => {
+      $(el).find('button, svg, script, style').remove();
+      const txt = $(el).text().trim();
+      if (txt) userQueries.push(txt);
+    });
+
+    $('model-response, .model-response-text, .response-container, [data-test-id="model-response"], .message-content, .markdown, .model-response').each((i, el) => {
+      $(el).find('button, svg, script, style, .action-buttons').remove();
+      const txt = $(el).text().trim();
+      if (txt) modelResponses.push(txt);
+    });
+
+    const maxTurns = Math.max(userQueries.length, modelResponses.length);
+    for (let t = 0; t < maxTurns; t++) {
+      if (userQueries[t]) {
+        messages.push({ role: 'User', content: userQueries[t] });
+      }
+      if (modelResponses[t]) {
+        messages.push({ role: 'Assistant', content: modelResponses[t] });
+      }
+    }
+  }
+
+  // Strategy 3: AF_initDataCallback / WIZ_global_data script blocks
+  if (messages.length === 0) {
+    $('script').each((i, element) => {
+      const text = $(element).html() || '';
+      if ((text.includes('AF_initDataCallback') || text.includes('AF_initDataChunkQueue')) && text.includes('data:')) {
+        try {
+          const dataMatch = text.match(/data:\s*(\[[\s\S]*?\])\s*,\s*sideChannel:/);
+          if (dataMatch) {
+            const rawData = JSON.parse(dataMatch[1]);
+            function extractGeminiStrings(node, result = []) {
+              if (typeof node === 'string' && node.length > 5) {
+                if (!node.startsWith('https://www.gstatic.com') && !node.startsWith('boq-bard-web')) {
+                  result.push(node);
+                }
+              } else if (Array.isArray(node)) {
+                for (const child of node) extractGeminiStrings(child, result);
+              }
+              return result;
+            }
+            const allStrings = extractGeminiStrings(rawData);
+            for (let s = 0; s < allStrings.length; s++) {
+              const str = allStrings[s];
+              if (str.includes('|') || str.includes('$$') || str.includes('$') || str.length > 50) {
+                messages.push({
+                  role: s % 2 === 0 ? 'User' : 'Assistant',
+                  content: str
+                });
               }
             }
-            return result;
           }
+        } catch (e) {}
+      }
+    });
+  }
 
-          const allStrings = extractGeminiStrings(rawData);
-          // Look for Markdown content with tables or math
-          for (let s = 0; s < allStrings.length; s++) {
-            const str = allStrings[s];
-            if (str.includes('|') || str.includes('$$') || str.includes('$') || str.length > 80) {
-              messages.push({
-                role: s % 2 === 0 ? 'User' : 'Assistant',
-                content: str
-              });
+  // Strategy 4: If single model response or article found, pair with title
+  if (messages.length === 0) {
+    const mainContent = $('.markdown, .share-content, main, article').first();
+    if (mainContent.length > 0) {
+      mainContent.find('button, svg, script, style, nav, header').remove();
+      const content = mainContent.text().trim();
+      if (content) {
+        if (title && title !== 'Gemini') {
+          messages.push({ role: 'User', content: title });
+        }
+        messages.push({ role: 'Assistant', content });
+      }
+    }
+  }
+
+  // Fallback for title
+  title = (title || '')
+    .replace(/^[\u200E\s]*Gemini\s*[-|–—]\s*/i, '')
+    .replace(/\s*[-|–—]\s*Gemini[\u200E\s]*$/i, '')
+    .replace(/direct access to Google AI/i, '')
+    .trim();
+
+  let isPartial = false;
+  if (messages.length === 0) {
+    if (title && title !== 'Gemini') {
+      isPartial = true;
+      messages.push({
+        role: 'User',
+        content: title
+      });
+      messages.push({
+        role: 'Assistant',
+        content: `> 💡 **Gemini Chat Title:** "${title}"\n>\n> Google Gemini privacy policy ke kaaran conversation body ko server-side scrape nahi karne deta.\n> **Puri chat import karne ke 2 aasan tareeqe:**\n> 1. Apne Gemini browser tab se chat text copy karein\n> 2. SaafPDF modal mein **"📋 Direct Chat Paste"** tab chunein ya editor mein paste karein\n>\n> SaafPDF sabhi user/assistant turns, tables aur LaTeX formulas ko turant clean PDF preview mein convert kar dega!`
+      });
+    }
+  }
+
+  if (!title || title === 'Gemini' || title.length === 0) {
+    if (messages.length > 0 && messages[0].role === 'User') {
+      title = messages[0].content.substring(0, 60).replace(/\n/g, ' ') + (messages[0].content.length > 60 ? '...' : '');
+    } else {
+      title = 'Gemini Shared Conversation';
+    }
+  }
+
+  return { title, messages, isPartial };
+}
+
+/**
+ * Universal Claude parser
+ */
+function parseClaudeShare(html, originalUrl = '') {
+  const $ = cheerio.load(html);
+  let messages = [];
+
+  // Extract Title: Check og:title, twitter:title, or <title>
+  let title = $('meta[property="og:title"]').attr('content') ||
+              $('meta[name="twitter:title"]').attr('content') ||
+              $('title').text() ||
+              '';
+
+  title = title
+    .replace(/^Claude\s*[-|–—]\s*/i, '')
+    .replace(/\s*[-|–—|]\s*Claude$/i, '')
+    .trim();
+
+  // Strategy 1: Check embedded JSON in script tags (__NEXT_DATA__, __PUBLIC_VIEWER_PRELOAD__, snapshot)
+  $('script').each((i, element) => {
+    if (messages.length > 0) return;
+    const text = $(element).html() || '';
+
+    if (text.includes('chat_messages') || text.includes('chat_conversations') || text.includes('snapshot')) {
+      try {
+        const type = $(element).attr('type');
+        let parsed = null;
+        if (type === 'application/json') {
+          parsed = JSON.parse(text);
+        } else {
+          const objMatch = text.match(/(?:snapshot|chat_messages|messages)\s*[:=]\s*(\{[^;]+\}|\[[^;]+\])/);
+          if (objMatch) {
+            parsed = JSON.parse(objMatch[1]);
+          }
+        }
+
+        if (parsed) {
+          function findClaudeMessages(obj) {
+            if (!obj || typeof obj !== 'object' || messages.length > 0) return;
+            if (Array.isArray(obj.chat_messages)) {
+              for (const m of obj.chat_messages) {
+                const role = m.sender === 'human' || m.sender === 'user' ? 'User' : 'Assistant';
+                let content = '';
+                if (typeof m.text === 'string') {
+                  content = m.text;
+                } else if (Array.isArray(m.content)) {
+                  content = m.content
+                    .filter(c => c && (typeof c === 'string' || c.type === 'text'))
+                    .map(c => typeof c === 'string' ? c : (c.text || ''))
+                    .join('\n\n');
+                }
+                if (content.trim()) {
+                  messages.push({ role, content: content.trim() });
+                }
+              }
+              if (obj.title && !title) title = obj.title;
+              return;
+            }
+            for (const val of Object.values(obj)) {
+              findClaudeMessages(val);
             }
           }
+          findClaudeMessages(parsed);
         }
       } catch (e) {}
     }
   });
 
-  // Strategy 2: Web components and DOM elements
+  // Strategy 2: Claude DOM Elements (data-testid, font-claude-message, etc.)
   if (messages.length === 0) {
-    $('message-content, user-query, model-response, div[data-response-index], .conversation-container, .user-query-container, .model-response-text').each((i, el) => {
-      $(el).find('button, svg, script, style').remove();
-      const tagName = el.tagName.toLowerCase();
-      const isUser = tagName === 'user-query' || $(el).hasClass('user-query-container') || $(el).text().includes('User');
-      const text = $(el).text().trim();
-      if (text) {
+    const userNodes = $('[data-testid="user-message"], .font-user-message');
+    const assistantNodes = $('[data-testid="assistant-message"], .font-claude-message, .prose');
+
+    if (userNodes.length > 0 || assistantNodes.length > 0) {
+      const maxTurns = Math.max(userNodes.length, assistantNodes.length);
+      for (let i = 0; i < maxTurns; i++) {
+        if (userNodes[i]) {
+          const $u = $(userNodes[i]);
+          $u.find('button, svg, script, style').remove();
+          const uText = $u.text().trim();
+          if (uText) messages.push({ role: 'User', content: uText });
+        }
+        if (assistantNodes[i]) {
+          const $a = $(assistantNodes[i]);
+          $a.find('button, svg, script, style, .action-buttons').remove();
+          const aText = $a.text().trim();
+          if (aText) messages.push({ role: 'Assistant', content: aText });
+        }
+      }
+    }
+  }
+
+  // Strategy 3: General articles or conversation blocks
+  if (messages.length === 0) {
+    $('article, div.grid-cols-1').each((i, el) => {
+      const $el = $(el);
+      $el.find('button, svg, script, style').remove();
+      const text = $el.text().trim();
+      if (text.length > 20) {
         messages.push({
-          role: isUser ? 'User' : 'Assistant',
+          role: i % 2 === 0 ? 'User' : 'Assistant',
           content: text
         });
       }
     });
   }
 
-  // Strategy 3: Search for rich markdown blocks in any element
-  if (messages.length === 0) {
-    $('.markdown, .response-content').each((i, el) => {
-      $(el).find('button, svg, script, style').remove();
-      const text = $(el).text().trim();
-      if (text) {
-        messages.push({
-          role: 'Assistant',
-          content: text
-        });
-      }
-    });
+  if (!title || title === 'Claude' || title.length === 0) {
+    if (messages.length > 0 && messages[0].role === 'User') {
+      title = messages[0].content.substring(0, 60).replace(/\n/g, ' ') + (messages[0].content.length > 60 ? '...' : '');
+    } else {
+      title = 'Claude Shared Conversation';
+    }
   }
 
   return { title, messages };
 }
 
 /**
- * Clean ChatGPT & Gemini custom UI pseudo-tags (<box>, <row>, etc.)
+ * Clean ChatGPT, Gemini & Claude custom UI pseudo-tags (<box>, <row>, <antThinking>, etc.)
  */
 function cleanMessageContent(str) {
   if (!str) return '';
   return str
-    .replace(/<\/?(box|row|text|icon)[^>]*>/gi, '')
+    .replace(/<antThinking>[\s\S]*?<\/antThinking>/gi, '') // Remove Claude thinking blocks
+    .replace(/<antArtifact[\s\S]*?<\/antArtifact>/gi, '') // Remove raw artifact wrappers
+    .replace(/<\/?(box|row|text|icon|antArtifact|antThinking)[^>]*>/gi, '')
     .replace(/sandbox_download_unverified[^\n]*\n?/gi, '')
+    .replace(/\[cite_source_[^\]]*\]/gi, '')
     .trim();
 }
 
@@ -471,14 +700,57 @@ function formatConversationToMarkdown(title, messages) {
   return md;
 }
 
-// API: Share link import endpoint
+/**
+ * Parse raw pasted chat text from Claude, ChatGPT, or Gemini
+ */
+function formatAiChatText(rawText) {
+  if (!rawText || typeof rawText !== 'string') return '';
+  const trimmed = rawText.trim();
+
+  // Regex patterns to identify conversational turn boundaries
+  // E.g. "Human:", "Assistant:", "You said:", "ChatGPT said:", "User:", "Gemini:", "Claude:"
+  const turnRegex = /(?:^|\n)(?:###?\s*)?(Human|User|You|You said|Assistant|Claude|Gemini|ChatGPT|ChatGPT said|Model)\s*:\s*\n?/gi;
+
+  const matches = [...trimmed.matchAll(turnRegex)];
+  if (matches.length >= 2) {
+    let turns = [];
+    for (let i = 0; i < matches.length; i++) {
+      const match = matches[i];
+      const speakerRaw = match[1].toLowerCase();
+      const isUser = speakerRaw.includes('human') || speakerRaw.includes('user') || speakerRaw.includes('you');
+      const startIdx = match.index + match[0].length;
+      const endIdx = (i + 1 < matches.length) ? matches[i + 1].index : trimmed.length;
+      const content = trimmed.substring(startIdx, endIdx).trim();
+
+      if (content) {
+        turns.push({
+          role: isUser ? 'User' : 'Assistant',
+          content
+        });
+      }
+    }
+
+    if (turns.length > 0) {
+      let firstTurn = turns[0].content.split('\n')[0].replace(/[#*`_]/g, '').trim();
+      if (firstTurn.length > 50) firstTurn = firstTurn.substring(0, 50) + '...';
+      const docTitle = firstTurn || 'AI Conversation Export';
+
+      return formatConversationToMarkdown(docTitle, turns);
+    }
+  }
+
+  // If no conversational turns detected, clean up raw tags and return
+  return cleanMessageContent(trimmed);
+}
+
+// API: Share link import endpoint (ChatGPT, Gemini, Claude)
 app.post('/api/import-share', async (req, res) => {
   const { url } = req.body || {};
 
   if (!url || typeof url !== 'string' || !url.trim()) {
     return res.status(400).json({
       success: false,
-      error: 'URL missing hai. Kripya valid ChatGPT ya Gemini public share link dalein.'
+      error: 'URL missing hai. Kripya valid ChatGPT, Gemini ya Claude public share link dalein.'
     });
   }
 
@@ -495,8 +767,10 @@ app.post('/api/import-share', async (req, res) => {
     let result;
     if (hostname.includes('chatgpt.com') || hostname.includes('openai.com')) {
       result = parseChatGptShare(html);
-    } else if (hostname.includes('gemini.google.com') || hostname.includes('g.co')) {
+    } else if (hostname.includes('gemini.google.com') || hostname.includes('share.gemini.google') || hostname.includes('g.co')) {
       result = parseGeminiShare(html);
+    } else if (hostname.includes('claude.ai')) {
+      result = parseClaudeShare(html, trimmedUrl);
     }
 
     if (!result || !result.messages || result.messages.length === 0) {
@@ -512,7 +786,8 @@ app.post('/api/import-share', async (req, res) => {
       success: true,
       title: result.title,
       messageCount: result.messages.length,
-      markdown: markdownText
+      markdown: markdownText,
+      isPartial: !!result.isPartial
     });
   } catch (err) {
     return res.status(500).json({
@@ -520,6 +795,20 @@ app.post('/api/import-share', async (req, res) => {
       error: err.message || 'Share link fetch karne mein truti hui.'
     });
   }
+});
+
+// API: Direct AI Chat text formatter (ChatGPT, Gemini, Claude)
+app.post('/api/format-chat-text', (req, res) => {
+  const { text } = req.body || {};
+  if (!text || typeof text !== 'string' || !text.trim()) {
+    return res.status(400).json({ success: false, error: 'Text missing hai.' });
+  }
+
+  const formatted = formatAiChatText(text);
+  return res.json({
+    success: true,
+    markdown: formatted
+  });
 });
 
 // Health check endpoint
@@ -536,4 +825,13 @@ if (require.main === module) {
   });
 }
 
-module.exports = { app, server, validateShareUrl };
+module.exports = {
+  app,
+  server,
+  validateShareUrl,
+  parseChatGptShare,
+  parseGeminiShare,
+  parseClaudeShare,
+  formatAiChatText,
+  formatConversationToMarkdown
+};

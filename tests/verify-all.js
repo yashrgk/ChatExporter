@@ -191,14 +191,23 @@ runTest('Responsive layout contains mobile tabs, large textarea, and A4 preview 
   assert(html.includes('id="a4-sheet"'), 'Must have #a4-sheet');
 });
 
-// Test 13: Share URL validation (reject non-HTTPS, invalid hosts, private IPs)
-runTest('Share link validator accepts valid ChatGPT/Gemini URLs and rejects unsafe/SSRF URLs', () => {
+// Test 13: Share URL validation (reject non-HTTPS, invalid hosts, private IPs; accept ChatGPT, Gemini, Claude)
+runTest('Share link validator accepts valid ChatGPT/Gemini/Claude URLs and rejects unsafe/SSRF URLs', () => {
   // Valid URLs
   const v1 = validateShareUrl('https://chatgpt.com/share/670a-1234-abcd');
   assert(v1.valid === true, 'https://chatgpt.com/share/... must be valid');
 
   const v2 = validateShareUrl('https://gemini.google.com/share/9876-fedc');
   assert(v2.valid === true, 'https://gemini.google.com/share/... must be valid');
+
+  const v3 = validateShareUrl('https://claude.ai/share/8df83cb1-d41c-4b53-83f5-0453e9447738');
+  assert(v3.valid === true, 'https://claude.ai/share/... must be valid');
+
+  const v4 = validateShareUrl('https://g.co/gemini/share/b517a635ad51');
+  assert(v4.valid === true, 'https://g.co/gemini/share/... must be valid');
+
+  const v5 = validateShareUrl('https://share.gemini.google/JDowfv72i6GL');
+  assert(v5.valid === true, 'https://share.gemini.google/... must be valid');
 
   // Invalid: Non-HTTPS
   const inv1 = validateShareUrl('http://chatgpt.com/share/123');
@@ -222,8 +231,25 @@ runTest('Share link validator accepts valid ChatGPT/Gemini URLs and rejects unsa
 
 // Test 14: Format conversation messages to clean markdown
 runTest('Conversation messages format to readable Markdown with user/AI tags', () => {
-  const { app } = require('../server.js');
+  const { app, formatConversationToMarkdown, formatAiChatText } = require('../server.js');
   assert(app, 'Express app should be exported');
+
+  // Verify formatConversationToMarkdown
+  const formatted = formatConversationToMarkdown('Calculus Test', [
+    { role: 'User', content: 'What is the derivative of sin(x)?' },
+    { role: 'Assistant', content: 'The derivative is: $$ \\frac{d}{dx}\\sin(x) = \\cos(x) $$' }
+  ]);
+  assert(formatted.includes('# Calculus Test'), 'Must have title');
+  assert(formatted.includes('### 👤 User:'), 'Must have user role header');
+  assert(formatted.includes('### 🤖 Assistant:'), 'Must have assistant role header');
+  assert(formatted.includes('\\frac{d}{dx}\\sin(x) = \\cos(x)'), 'Must preserve formula');
+
+  // Verify Claude / Gemini raw chat formatter
+  const rawClaude = `Human: How do matrix determinants work?\n\nAssistant: Here is the matrix determinant formula: $$ \\det(A) = ad - bc $$`;
+  const parsedClaude = formatAiChatText(rawClaude);
+  assert(parsedClaude.includes('### 👤 User:'), 'Raw Claude Human turn must be converted to User');
+  assert(parsedClaude.includes('### 🤖 Assistant:'), 'Raw Claude Assistant turn must be converted to Assistant');
+  assert(parsedClaude.includes('ad - bc'), 'Math formula must be preserved');
 });
 
 // Test 15: Loopback binding & SSRF protection

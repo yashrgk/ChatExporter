@@ -69,6 +69,96 @@ Throughput\t120 req/s\t450 req/s\t+275%\tPassed
 > [!NOTE]
 > SaafPDF aapke response ko 100% locally format karta hai. Koi bhi private text kisi remote server ya external analytics par upload nahi hota.`;
 
+  const SAMPLE_GEMINI = `# Gemini 1.5 Pro: Multivariable Optimization & Matrix Decompositions
+
+Google Gemini dwara generate kiya gaya complex analytical response. Isme multiple mathematical steps, wide comparison tables, TSV data aur eigenvalues calculations shamil hain.
+
+##### Step 1: Characteristic Polynomial aur Eigenvalues $A \\mathbf{v} = \\lambda \\mathbf{v}$
+
+Matrix $A$ ka determinant formulate karte hain:
+$$ \\det(A - \\lambda I) = 0 $$
+
+Given 3x3 symmetric matrix:
+\\[ A = \\begin{pmatrix} 4 & 1 & 0 \\\\ 1 & 4 & 1 \\\\ 0 & 1 & 4 \\end{pmatrix} \\]
+
+Characteristic equation compute karne par:
+$$ (4 - \\lambda) \\left[ (4 - \\lambda)^2 - 1 \\right] - 1(4 - \\lambda) = 0 $$
+$$ (4 - \\lambda) \\left( \\lambda^2 - 8\\lambda + 14 \\right) = 0 $$
+
+Isse exact analytical eigenvalues prapt hoti hain:
+* $\\lambda_1 = 4$
+* $\\lambda_2 = 4 + \\sqrt{2}$
+* $\\lambda_3 = 4 - \\sqrt{2}$
+
+---
+
+### Gemini Multimodal Vision & Reasoning Performance Comparison
+
+| Model Architecture | Input Modalities | Context Length | MMLU Score | GSM8K Math Accuracy |
+| :--- | :--- | :---: | :---: | :--- |
+| Gemini 1.5 Ultra | Text, Vision, Audio, Video | 2,000,000 Tokens | 90.04% | 94.4% (Multi-step reasoning) |
+| Gemini 1.5 Pro | Text, Code, Vision, Audio | 1,000,000 Tokens | 85.9% | 91.7% (Chain of thought) |
+| Gemini 1.5 Flash | Lightweight Realtime Edge | 1,000,000 Tokens | 78.9% | 84.2% (Low latency inference) |
+| Claude 3.5 Sonnet | Text, Code, High-res Vision | 200,000 Tokens | 88.7% | 92.3% (Precision coding) |
+
+---
+
+### Tab-Separated Benchmark Results (Gemini TPU v5p Cluster vs GPU)
+
+Metric\tTPU v5p Cluster\tNVIDIA H100 GPU\tSpeedup\tEfficiency Status
+Time to First Token\t42ms\t58ms\t1.38x\tPassed
+Sustained Decoding\t185 tok/s\t142 tok/s\t1.30x\tPassed
+Energy Consumption\t310W\t450W\t1.45x\tPassed
+
+---
+
+> [!TIP]
+> Gemini shared links (\`gemini.google.com/share/...\` ya \`g.co/gemini/share/...\`) bina kisi header overflow error ke direct A4 format mein convert hote hain.`;
+
+  const SAMPLE_CLAUDE = `# Claude 3.5 Sonnet: Quantum State Evolution & Functional Analysis
+
+Anthropic Claude dwara provide kiya gaya formal mathematical proof aur step-by-step derivation.
+
+### 👤 Human:
+Can you derive the time-dependent Schrödinger equation and provide a tabular comparison of quantum state representations?
+
+---
+
+### 🤖 Assistant:
+Certainly. Let us begin with the fundamental postulate of quantum mechanics connecting energy to the Hamiltonian operator $\\hat{H}$.
+
+##### Step 1: State Vector and Unitary Time Evolution Operator $U(t)$
+
+In Hilbert space $\\mathcal{H}$, any physical quantum state $|\\psi(t)\\rangle$ evolves according to the unitary operator:
+$$ |\\psi(t)\\rangle = \\hat{U}(t, t_0) |\\psi(t_0)\\rangle $$
+
+Where unitary condition enforces preservation of total probability:
+$$ \\hat{U}^\\dagger \\hat{U} = \\hat{I}, \\quad \\langle \\psi(t) | \\psi(t) \\rangle = 1 $$
+
+##### Step 2: Infinitesimal Time Evolution & Generator of Translations
+
+Taking the derivative with respect to time $t$:
+$$ i\\hbar \\frac{\\partial}{\\partial t} |\\psi(t)\\rangle = \\hat{H} |\\psi(t)\\rangle $$
+
+In coordinate space representation $\\langle \\mathbf{r} | \\psi(t) \\rangle = \\Psi(\\mathbf{r}, t)$, this yields the canonical differential equation:
+$$ i\\hbar \\frac{\\partial \\Psi(\\mathbf{r}, t)}{\\partial t} = \\left( -\\frac{\\hbar^2}{2m} \\nabla^2 + V(\\mathbf{r}, t) \\right) \\Psi(\\mathbf{r}, t) $$
+
+---
+
+### Quantum Mechanics Formalisms Comparison Table
+
+| Formalism | State Description | Observables Dynamic | Evolution Equation | Primary Application |
+| :--- | :--- | :--- | :--- | :--- |
+| Schrödinger Picture | Time-dependent $|\\psi(t)\\rangle$ | Stationary operators $\\hat{A}$ | $i\\hbar \\partial_t |\\psi\\rangle = \\hat{H}|\\psi\\rangle$ | Wave packet spreading & atomic orbitals |
+| Heisenberg Picture | Fixed state $|\\psi(0)\\rangle$ | Time-dependent $\\hat{A}(t)$ | $\\frac{d\\hat{A}}{dt} = \\frac{i}{\\hbar}[\\hat{H}, \\hat{A}] + \\partial_t \\hat{A}$ | Quantum field theory & canonical quantization |
+| Dirac (Interaction) | Evolving under $\\hat{V}_I(t)$ | Evolving under $\\hat{H}_0$ | $i\\hbar \\partial_t |\\psi_I\\rangle = \\hat{V}_I(t)|\\psi_I\\rangle$ | Perturbation theory & scattering S-matrix |
+| Feynman Path Integral | Propagator amplitude $K(b,a)$ | Classical action $S[x]$ | $K(b,a) = \\int \\mathcal{D}[x(t)] e^{iS/\\hbar}$ | Quantum electrodynamics & lattice gauge |
+
+---
+
+> [!NOTE]
+> Claude shared conversations (\`claude.ai/share/...\`) aur direct copied chat text dono SaafPDF mein perfectly render hote hain.`;
+
   // DOM Elements
   const chatInput = document.getElementById('chat-input');
   const docTitleInput = document.getElementById('doc-title-input');
@@ -87,14 +177,27 @@ Throughput\t120 req/s\t450 req/s\t+275%\tPassed
   const btnCopyPreview = document.getElementById('btn-copy-preview');
   const themeToggle = document.getElementById('theme-toggle');
 
+  // Quick Demo Buttons
+  const btnDemoChatgpt = document.getElementById('btn-demo-chatgpt');
+  const btnDemoGemini = document.getElementById('btn-demo-gemini');
+  const btnDemoClaude = document.getElementById('btn-demo-claude');
+  const btnFormatChat = document.getElementById('btn-format-chat');
+
   // Share Import Modal Elements
   const btnOpenImport = document.getElementById('btn-open-import');
   const importModal = document.getElementById('import-modal');
   const btnCloseModal = document.getElementById('btn-close-modal');
   const btnCancelImport = document.getElementById('btn-cancel-import');
   const btnSubmitImport = document.getElementById('btn-submit-import');
+  const btnSubmitImportText = document.getElementById('btn-submit-import-text');
   const shareUrlInput = document.getElementById('share-url-input');
+  const rawChatInput = document.getElementById('raw-chat-input');
   const importStatus = document.getElementById('import-status');
+  const modalTabLink = document.getElementById('modal-tab-link');
+  const modalTabText = document.getElementById('modal-tab-text');
+  const paneLinkImport = document.getElementById('pane-link-import');
+  const paneTextImport = document.getElementById('pane-text-import');
+  let modalActiveTab = 'link'; // 'link' or 'text'
 
   // Zoom Elements
   const zoomInBtn = document.getElementById('zoom-in');
@@ -210,7 +313,7 @@ Throughput\t120 req/s\t450 req/s\t+275%\tPassed
   function isStandaloneShareLink(text) {
     if (!text) return null;
     const clean = text.trim();
-    const regex = /^(https?:\/\/)?(chatgpt\.com\/share\/[a-zA-Z0-9_\-]+|chat\.openai\.com\/share\/[a-zA-Z0-9_\-]+|gemini\.google\.com\/share\/[a-zA-Z0-9_\-]+|g\.co\/gemini\/share\/[a-zA-Z0-9_\-]+)(\?[^\s]*)?$/i;
+    const regex = /^(https?:\/\/)?(chatgpt\.com\/share\/[a-zA-Z0-9_\-]+|chat\.openai\.com\/share\/[a-zA-Z0-9_\-]+|gemini\.google\.com\/share\/[a-zA-Z0-9_\-]+|share\.gemini\.google\/[a-zA-Z0-9_\-]+|g\.co\/gemini\/share\/[a-zA-Z0-9_\-]+|claude\.ai\/(?:share|chat)\/[a-zA-Z0-9_\-]+)(\?[^\s]*)?$/i;
     if (regex.test(clean)) {
       return clean.startsWith('http') ? clean : ('https://' + clean);
     }
@@ -268,7 +371,11 @@ Throughput\t120 req/s\t450 req/s\t+275%\tPassed
       }
 
       updatePreview();
-      showToast(`Puri chat import ho gayi (${data.messageCount} messages)! PDF banayein ready hai.`, 'success', 4000);
+      if (data.isPartial) {
+        showToast(`Gemini Title mila: "${data.title}"! Puri chat copy-paste karne ke liye Direct Paste use karein.`, 'info', 5000);
+      } else {
+        showToast(`Puri chat import ho gayi (${data.messageCount} messages)! PDF banayein ready hai.`, 'success', 4000);
+      }
 
     } catch (err) {
       showToast(`Link import error: ${err.message}`, 'error', 4500);
@@ -392,7 +499,7 @@ Throughput\t120 req/s\t450 req/s\t+275%\tPassed
     const rawUrl = (shareUrlInput.value || '').trim();
     if (!rawUrl) {
       importStatus.className = 'import-status-box error';
-      importStatus.textContent = 'Kripya ChatGPT ya Gemini share link dalein.';
+      importStatus.textContent = 'Kripya ChatGPT, Gemini ya Claude ka share link dalein.';
       shareUrlInput.focus();
       return;
     }
@@ -432,29 +539,139 @@ Throughput\t120 req/s\t450 req/s\t+275%\tPassed
 
       updatePreview();
 
-      importStatus.className = 'import-status-box success';
-      importStatus.innerHTML = `✅ ${data.messageCount || 'Kayi'} messages safaltapoorvak import ho gaye!`;
-
-      showToast(`Puri chat import ho gayi (${data.messageCount || ''} messages)!`, 'success');
-
-      setTimeout(() => {
-        closeImportModal();
-      }, 1000);
+      if (data.isPartial) {
+        importStatus.className = 'import-status-box success';
+        importStatus.innerHTML = `✅ Gemini Title mila: "<strong>${data.title}</strong>"!<br><small style="display:block;margin-top:4px;">Browser security ke kaaran conversation body ko copy karke yahan paste karein.</small><button id="btn-switch-to-text-tab" style="margin-top:8px;padding:5px 10px;font-size:0.8rem;cursor:pointer;border-radius:4px;border:1px solid currentColor;background:rgba(79,70,229,0.1);font-weight:600;">📋 Direct Chat Paste Tab Par Switch Karein</button>`;
+        showToast(`Gemini Title mila: "${data.title}". Direct Paste mein chat paste karein.`, 'info', 5000);
+        setTimeout(() => {
+          const switchBtn = document.getElementById('btn-switch-to-text-tab');
+          if (switchBtn) {
+            switchBtn.addEventListener('click', () => switchModalTab('text'));
+          }
+        }, 50);
+      } else {
+        importStatus.className = 'import-status-box success';
+        importStatus.innerHTML = `✅ ${data.messageCount || 'Kayi'} messages safaltapoorvak import ho gaye!`;
+        showToast(`Puri chat import ho gayi (${data.messageCount || ''} messages)!`, 'success');
+        setTimeout(() => {
+          closeImportModal();
+        }, 1000);
+      }
 
     } catch (err) {
       importStatus.className = 'import-status-box error';
-      importStatus.textContent = `❌ ${err.message || 'Share link fetch karne mein truti hui.'}`;
+      const errMsg = err.message || 'Share link fetch karne mein truti hui.';
+      importStatus.innerHTML = `<span>❌ ${errMsg}</span>`;
+      
+      // If Claude or Cloudflare blocks, show hint to switch to Direct Paste tab
+      if (errMsg.includes('Cloudflare') || errMsg.includes('Claude') || rawUrl.includes('claude.ai') || rawUrl.includes('gemini')) {
+        importStatus.innerHTML += `<br><button id="btn-switch-to-text-tab" style="margin-top:8px;padding:4px 8px;font-size:0.75rem;cursor:pointer;border-radius:4px;border:1px solid currentColor;background:transparent;">📋 Direct Paste Tab Par Switch Karein</button>`;
+        setTimeout(() => {
+          const switchBtn = document.getElementById('btn-switch-to-text-tab');
+          if (switchBtn) {
+            switchBtn.addEventListener('click', () => switchModalTab('text'));
+          }
+        }, 50);
+      }
     } finally {
       btnSubmitImport.disabled = false;
+    }
+  }
+
+  /**
+   * Direct Chat Text Import Handler (Handles Claude, Gemini, ChatGPT copied text)
+   */
+  function handleImportText() {
+    const rawText = (rawChatInput.value || '').trim();
+    if (!rawText) {
+      importStatus.className = 'import-status-box error';
+      importStatus.textContent = 'Kripya chat text yahan paste karein.';
+      rawChatInput.focus();
+      return;
+    }
+
+    importStatus.className = 'import-status-box loading';
+    importStatus.innerHTML = '<span class="spinner"></span> <span>AI Chat format ki ja rahi hai...</span>';
+
+    try {
+      const formatted = window.SaafParser && typeof window.SaafParser.formatAiChatText === 'function'
+        ? window.SaafParser.formatAiChatText(rawText)
+        : rawText;
+
+      if (chatInput) {
+        chatInput.value = formatted;
+      }
+
+      // Try extracting title from first line of formatted markdown
+      const titleMatch = formatted.match(/^#\s+([^\n]+)/);
+      if (titleMatch && docTitleInput) {
+        docTitleInput.value = titleMatch[1].trim();
+      }
+
+      updatePreview();
+
+      importStatus.className = 'import-status-box success';
+      importStatus.innerHTML = '✅ Chat text safaltapoorvak format & import ho gaya!';
+
+      showToast('AI Chat clean format mein import ho gayi!', 'success');
+
+      setTimeout(() => {
+        closeImportModal();
+      }, 800);
+    } catch (err) {
+      importStatus.className = 'import-status-box error';
+      importStatus.textContent = `❌ ${err.message || 'Text format karne mein truti hui.'}`;
+    }
+  }
+
+  /**
+   * Universal Submit for Modal
+   */
+  function handleModalSubmit() {
+    if (modalActiveTab === 'text') {
+      handleImportText();
+    } else {
+      handleImportShare();
+    }
+  }
+
+  /**
+   * Modal Tab Switcher (Link vs Text)
+   */
+  function switchModalTab(tab) {
+    modalActiveTab = tab;
+    if (importStatus) {
+      importStatus.className = 'import-status-box';
+      importStatus.textContent = '';
+    }
+
+    if (tab === 'text') {
+      if (modalTabLink) modalTabLink.classList.remove('active');
+      if (modalTabText) modalTabText.classList.add('active');
+      if (paneLinkImport) paneLinkImport.classList.add('tab-pane-hidden');
+      if (paneTextImport) paneTextImport.classList.remove('tab-pane-hidden');
+      if (btnSubmitImportText) btnSubmitImportText.textContent = 'Format & Import Karein';
+      if (rawChatInput) rawChatInput.focus();
+    } else {
+      if (modalTabLink) modalTabLink.classList.add('active');
+      if (modalTabText) modalTabText.classList.remove('active');
+      if (paneLinkImport) paneLinkImport.classList.remove('tab-pane-hidden');
+      if (paneTextImport) paneTextImport.classList.add('tab-pane-hidden');
+      if (btnSubmitImportText) btnSubmitImportText.textContent = 'Puri chat import karein';
+      if (shareUrlInput) shareUrlInput.focus();
     }
   }
 
   function openImportModal() {
     if (importModal) {
       importModal.classList.add('open');
+      switchModalTab('link');
       if (shareUrlInput) {
         shareUrlInput.value = '';
         shareUrlInput.focus();
+      }
+      if (rawChatInput) {
+        rawChatInput.value = '';
       }
       if (importStatus) {
         importStatus.className = 'import-status-box';
@@ -584,21 +801,88 @@ Throughput\t120 req/s\t450 req/s\t+275%\tPassed
 
     // Button actions
     if (btnPrint) btnPrint.addEventListener('click', handlePrintPdf);
-    if (btnDownloadPdf) btnDownloadPdf.addEventListener('click', handleDownloadPdf);
-    if (themeToggle) themeToggle.addEventListener('click', toggleTheme);
+    // Quick Demo Buttons
+    function loadSample(title, content, providerName) {
+      if (docTitleInput) docTitleInput.value = title;
+      if (chatInput) chatInput.value = content;
+      updatePreview();
+      showToast(`${providerName} sample load ho gaya!`, 'success');
+      if (window.innerWidth <= 1024) {
+        const previewTab = document.querySelector('.tab-btn[data-target="preview"]');
+        if (previewTab) previewTab.click();
+      }
+    }
 
-    // Sample button
     if (btnSample) {
       btnSample.addEventListener('click', () => {
-        if (docTitleInput) docTitleInput.value = 'Calculus & LLM Comparison Notes';
-        if (chatInput) chatInput.value = SAMPLE_RESPONSE;
-        updatePreview();
-        showToast('Sample chat response load ho gaya!', 'success');
-        
-        // On mobile, automatically show preview
-        if (window.innerWidth <= 1024) {
-          const previewTab = document.querySelector('.tab-btn[data-target="preview"]');
-          if (previewTab) previewTab.click();
+        loadSample('Calculus & LLM Comparison Notes', SAMPLE_RESPONSE, 'ChatGPT');
+      });
+    }
+
+    if (btnDemoChatgpt) {
+      btnDemoChatgpt.addEventListener('click', () => {
+        loadSample('Calculus & LLM Comparison Notes', SAMPLE_RESPONSE, 'ChatGPT');
+      });
+    }
+
+    if (btnDemoGemini) {
+      btnDemoGemini.addEventListener('click', () => {
+        loadSample('Gemini 1.5 Multivariable & Matrix Optimization', SAMPLE_GEMINI, 'Google Gemini');
+      });
+    }
+
+    if (btnDemoClaude) {
+      btnDemoClaude.addEventListener('click', () => {
+        loadSample('Claude 3.5 Quantum State Evolution & Proofs', SAMPLE_CLAUDE, 'Anthropic Claude');
+      });
+    }
+
+    // Format AI Chat Button (Turns raw pasted text with Human/Assistant or You said/ChatGPT said into clean markdown)
+    if (btnFormatChat) {
+      btnFormatChat.addEventListener('click', () => {
+        if (!chatInput || !chatInput.value.trim()) {
+          showToast('Pehle editor mein AI chat paste karein.', 'warning');
+          return;
+        }
+
+        const raw = chatInput.value;
+        const formatted = window.SaafParser && typeof window.SaafParser.formatAiChatText === 'function'
+          ? window.SaafParser.formatAiChatText(raw)
+          : raw;
+
+        if (formatted !== raw) {
+          chatInput.value = formatted;
+          const titleMatch = formatted.match(/^#\s+([^\n]+)/);
+          if (titleMatch && docTitleInput && !docTitleInput.value.trim()) {
+            docTitleInput.value = titleMatch[1].trim();
+          }
+          updatePreview();
+          showToast('AI Chat turns safaltapoorvak format ho gaye!', 'success');
+        } else {
+          showToast('Text already clean hai ya standard markdown format mein hai.', 'info');
+        }
+      });
+    }
+
+    // Auto-detect share link on paste in main editor
+    if (chatInput) {
+      chatInput.addEventListener('paste', (e) => {
+        const pastedText = (e.clipboardData || window.clipboardData)?.getData('text') || '';
+        const trimmed = pastedText.trim();
+        if (
+          (trimmed.startsWith('https://chatgpt.com/share/') ||
+           trimmed.startsWith('https://chat.openai.com/share/') ||
+           trimmed.startsWith('https://gemini.google.com/share/') ||
+           trimmed.startsWith('https://g.co/gemini/share/') ||
+           trimmed.startsWith('https://claude.ai/share/')) &&
+          !trimmed.includes('\n')
+        ) {
+          // If a single link was pasted into editor, suggest importing full conversation
+          setTimeout(() => {
+            if (shareUrlInput) shareUrlInput.value = trimmed;
+            openImportModal();
+            showToast('AI Share link detect hua! "Puri chat import karein" dabayein.', 'info', 4500);
+          }, 100);
         }
       });
     }
@@ -633,7 +917,9 @@ Throughput\t120 req/s\t450 req/s\t+275%\tPassed
     if (btnOpenImport) btnOpenImport.addEventListener('click', openImportModal);
     if (btnCloseModal) btnCloseModal.addEventListener('click', closeImportModal);
     if (btnCancelImport) btnCancelImport.addEventListener('click', closeImportModal);
-    if (btnSubmitImport) btnSubmitImport.addEventListener('click', handleImportShare);
+    if (btnSubmitImport) btnSubmitImport.addEventListener('click', handleModalSubmit);
+    if (modalTabLink) modalTabLink.addEventListener('click', () => switchModalTab('link'));
+    if (modalTabText) modalTabText.addEventListener('click', () => switchModalTab('text'));
 
     if (importModal) {
       importModal.addEventListener('click', (e) => {

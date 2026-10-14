@@ -431,6 +431,68 @@
     return rawHtml;
   }
 
+  /**
+   * Clean Claude, ChatGPT & Gemini custom UI pseudo-tags
+   */
+  function cleanMessageContent(str) {
+    if (!str) return '';
+    return str
+      .replace(/<antThinking>[\s\S]*?<\/antThinking>/gi, '') // Remove Claude thinking blocks
+      .replace(/<antArtifact[\s\S]*?<\/antArtifact>/gi, '') // Remove raw artifact wrappers
+      .replace(/<\/?(box|row|text|icon|antArtifact|antThinking)[^>]*>/gi, '')
+      .replace(/sandbox_download_unverified[^\n]*\n?/gi, '')
+      .replace(/\[cite_source_[^\]]*\]/gi, '')
+      .trim();
+  }
+
+  /**
+   * Format raw pasted chat text from Claude, ChatGPT, or Gemini
+   */
+  function formatAiChatText(rawText) {
+    if (!rawText || typeof rawText !== 'string') return '';
+    const trimmed = rawText.trim();
+
+    // Regex patterns to identify conversational turn boundaries
+    const turnRegex = /(?:^|\n)(?:###?\s*)?(Human|User|You|You said|Assistant|Claude|Gemini|ChatGPT|ChatGPT said|Model)\s*:\s*\n?/gi;
+
+    const matches = [...trimmed.matchAll(turnRegex)];
+    if (matches.length >= 2) {
+      let turns = [];
+      for (let i = 0; i < matches.length; i++) {
+        const match = matches[i];
+        const speakerRaw = match[1].toLowerCase();
+        const isUser = speakerRaw.includes('human') || speakerRaw.includes('user') || speakerRaw.includes('you');
+        const startIdx = match.index + match[0].length;
+        const endIdx = (i + 1 < matches.length) ? matches[i + 1].index : trimmed.length;
+        const content = trimmed.substring(startIdx, endIdx).trim();
+
+        if (content) {
+          turns.push({
+            role: isUser ? 'User' : 'Assistant',
+            content
+          });
+        }
+      }
+
+      if (turns.length > 0) {
+        let firstTurn = turns[0].content.split('\n')[0].replace(/[#*`_]/g, '').trim();
+        if (firstTurn.length > 50) firstTurn = firstTurn.substring(0, 50) + '...';
+        const docTitle = firstTurn || 'AI Conversation Export';
+
+        let md = `# ${docTitle}\n\n`;
+        for (const t of turns) {
+          const c = cleanMessageContent(t.content);
+          if (!c) continue;
+          const roleIcon = t.role === 'User' ? '👤' : '🤖';
+          md += `### ${roleIcon} ${t.role}:\n\n${c}\n\n---\n\n`;
+        }
+        return md;
+      }
+    }
+
+    return cleanMessageContent(trimmed);
+  }
+
   // Export for browser & node.js
   const SaafParser = {
     parseDocument,
@@ -438,6 +500,8 @@
     renderLatex,
     parseMarkdownTable,
     parseTsvTable,
+    formatAiChatText,
+    cleanMessageContent,
     getMathWarnings,
     clearMathWarnings
   };
