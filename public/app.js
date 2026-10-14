@@ -444,10 +444,10 @@ $$ i\\hbar \\frac{\\partial \\Psi(\\mathbf{r}, t)}{\\partial t} = \\left( -\\fra
    * Direct PDF Download using html2pdf.js
    */
   function handleDownloadPdf() {
-    const rawContent = chatInput.value.trim();
+    const rawContent = chatInput ? chatInput.value.trim() : '';
     if (!rawContent) {
       showToast('Kripya pehle chat response paste karein!', 'warning');
-      chatInput.focus();
+      if (chatInput) chatInput.focus();
       return;
     }
 
@@ -458,35 +458,61 @@ $$ i\\hbar \\frac{\\partial \\Psi(\\mathbf{r}, t)}{\\partial t} = \\left( -\\fra
     }
 
     const safeName = getSafeFilename();
-    btnDownloadPdf.disabled = true;
-    btnDownloadPdf.innerHTML = '<span class="spinner"></span> <span>Generating...</span>';
+    const btnDownload = document.getElementById('btn-download-pdf');
+    const btnMobile = document.getElementById('btn-mobile-download');
+
+    if (btnDownload) {
+      btnDownload.disabled = true;
+      btnDownload.innerHTML = '<span class="spinner"></span> <span>Generating...</span>';
+    }
+    if (btnMobile) {
+      btnMobile.disabled = true;
+      btnMobile.textContent = '⏳ Generating...';
+    }
+
+    // Temporarily reset CSS scale/transform for crystal-clear 1:1 html2canvas rasterization
+    const element = document.getElementById('a4-sheet');
+    const prevTransform = element ? element.style.transform : '';
+    if (element) {
+      element.style.transform = 'none';
+    }
 
     // Ensure A4 fitting
-    if (window.SaafScaler) {
+    if (window.SaafScaler && previewDoc) {
       window.SaafScaler.autoFitAll(previewDoc, 680);
     }
 
-    const element = document.getElementById('a4-sheet');
     const opt = {
-      margin:       [12, 12, 12, 12],
+      margin:       [10, 10, 10, 10],
       filename:     `${safeName}.pdf`,
       image:        { type: 'jpeg', quality: 0.98 },
-      html2canvas:  { scale: 2, useCORS: true, logging: false },
+      html2canvas:  { scale: 2, useCORS: true, logging: false, scrollY: 0, scrollX: 0 },
       jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
       pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
     };
 
     html2pdf().set(opt).from(element).save()
       .then(() => {
-        showToast(`PDF safaltapoorvak download ho gayi: ${safeName}.pdf`, 'success');
+        showToast(`PDF safaltapoorvak download ho gayi: ${safeName}.pdf`, 'success', 4000);
       })
       .catch((err) => {
-        showToast('PDF export error: ' + (err.message || 'Truti hui'), 'error');
+        console.error('html2pdf error:', err);
+        showToast('Direct download mein dikkat aayi. Browser Print dialog se Save as PDF karein...', 'warning', 4500);
+        handlePrintPdf();
       })
       .finally(() => {
-        btnDownloadPdf.disabled = false;
-        btnDownloadPdf.innerHTML = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg> <span>Download PDF</span>`;
-        if (window.SaafScaler) {
+        if (btnDownload) {
+          btnDownload.disabled = false;
+          btnDownload.innerHTML = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg> <span>Download PDF</span>`;
+        }
+        if (btnMobile) {
+          btnMobile.disabled = false;
+          btnMobile.textContent = '⬇️ Download';
+        }
+        if (element && prevTransform) {
+          element.style.transform = prevTransform;
+        }
+        if (window.SaafScaler && previewDoc) {
           window.SaafScaler.autoFitAll(previewDoc);
         }
       });
@@ -801,6 +827,7 @@ $$ i\\hbar \\frac{\\partial \\Psi(\\mathbf{r}, t)}{\\partial t} = \\left( -\\fra
 
     // Button actions
     if (btnPrint) btnPrint.addEventListener('click', handlePrintPdf);
+    if (btnDownloadPdf) btnDownloadPdf.addEventListener('click', handleDownloadPdf);
     // Quick Demo Buttons
     function loadSample(title, content, providerName) {
       if (docTitleInput) docTitleInput.value = title;
