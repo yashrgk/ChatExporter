@@ -383,7 +383,7 @@ function parseChatGptShare(html) {
           }
         }
         findConvo(bData);
-      } catch (e) {}
+      } catch (e) { }
     }
   }
 
@@ -414,9 +414,9 @@ function parseGeminiShare(html) {
 
   // Extract Title: Check og:title, twitter:title, or <title>
   let title = $('meta[property="og:title"]').attr('content') ||
-              $('meta[name="twitter:title"]').attr('content') ||
-              $('title').text() ||
-              '';
+    $('meta[name="twitter:title"]').attr('content') ||
+    $('title').text() ||
+    '';
 
   title = title
     .replace(/^Gemini\s*[-|–—]\s*/i, '')
@@ -501,7 +501,7 @@ function parseGeminiShare(html) {
               }
             }
           }
-        } catch (e) {}
+        } catch (e) { }
       }
     });
   }
@@ -563,9 +563,9 @@ function parseClaudeShare(html, originalUrl = '') {
 
   // Extract Title: Check og:title, twitter:title, or <title>
   let title = $('meta[property="og:title"]').attr('content') ||
-              $('meta[name="twitter:title"]').attr('content') ||
-              $('title').text() ||
-              '';
+    $('meta[name="twitter:title"]').attr('content') ||
+    $('title').text() ||
+    '';
 
   title = title
     .replace(/^Claude\s*[-|–—]\s*/i, '')
@@ -618,7 +618,7 @@ function parseClaudeShare(html, originalUrl = '') {
           }
           findClaudeMessages(parsed);
         }
-      } catch (e) {}
+      } catch (e) { }
     }
   });
 
@@ -825,7 +825,10 @@ if (require.main === module) {
   });
 }
 
-module.exports = {
+
+module.exports = app;
+
+Object.assign(module.exports, {
   app,
   server,
   validateShareUrl,
@@ -834,4 +837,5 @@ module.exports = {
   parseClaudeShare,
   formatAiChatText,
   formatConversationToMarkdown
-};
+});
+
